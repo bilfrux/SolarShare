@@ -1,0 +1,18 @@
+--- src/App.tsx
++++ src/App.tsx
+@@ -9,6 +9,7 @@
+ import About from "./pages/About";
+ import Contact from "./pages/Contact";
+ import Profile from "./pages/Profile";
++import ProposeProject from "./pages/ProposeProject";
+ 
+ export default function App() {
+   return (
+@@ -23,6 +24,7 @@
+           <Route path="/a-propos" element={<About />} />
+           <Route path="/contact" element={<Contact />} />
+           <Route path="/profil" element={<Profile />} />
++          <Route path="/proposer-projet" element={<ProposeProject />} />
+         </Routes>
+       </Layout>
+     </Router>

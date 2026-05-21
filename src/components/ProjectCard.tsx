@@ -4,6 +4,7 @@ import { Badge } from "./ui/badge";
 import { Progress } from "./ui/progress";
 import { MapPin, Users, TrendingUp } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
+import { InvestmentDialog } from "./InvestmentDialog";
 
 interface ProjectCardProps {
   id: string;
@@ -16,9 +17,11 @@ interface ProjectCardProps {
   investors: number;
   returnRate: string;
   category: string;
+  onInvested?: (amount: number) => void;
 }
 
 export function ProjectCard({
+  id,
   title,
   location,
   description,
@@ -28,9 +31,9 @@ export function ProjectCard({
   investors,
   returnRate,
   category,
+  onInvested,
 }: ProjectCardProps) {
   const progress = (currentAmount / targetAmount) * 100;
-  const remaining = targetAmount - currentAmount;
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
@@ -83,9 +86,14 @@ export function ProjectCard({
       </CardContent>
       <CardFooter className="flex gap-2">
         <Button variant="outline" className="flex-1">En savoir plus</Button>
-        <Button className="flex-1 bg-primary hover:bg-primary/90">
-          Investir dès 20€
-        </Button>
+        <InvestmentDialog
+          projectId={id}
+          projectTitle={title}
+          projectTargetAmount={targetAmount}
+          projectCurrentAmount={currentAmount}
+          projectInvestors={investors}
+          onInvested={onInvested}
+        />
       </CardFooter>
     </Card>
   );

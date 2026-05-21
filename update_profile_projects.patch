@@ -1,0 +1,91 @@
+--- src/pages/Profile.tsx
++++ src/pages/Profile.tsx
+@@ -5,13 +5,16 @@
+ import { Label } from "../components/ui/label";
+ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
+-import { Loader2, User } from "lucide-react";
++import { Loader2, User, Building } from "lucide-react";
++import { Progress } from "../components/ui/progress";
+ 
+ export default function Profile() {
+   const [loading, setLoading] = useState(true);
+   const [saving, setSaving] = useState(false);
+   const [kycLoading, setKycLoading] = useState(false);
+   const [user, setUser] = useState<any>(null);
++  const [proposedProjects, setProposedProjects] = useState<any[]>([]);
+   const [firstName, setFirstName] = useState("");
+   const [lastName, setLastName] = useState("");
+   const [currentPassword, setCurrentPassword] = useState("");
+@@ -33,6 +36,12 @@
+         } else {
+           await supabase.from("profiles").insert({ id: user.id });
+         }
++        
++        const { data: projectsData } = await supabase
++          .from("projects")
++          .select("*")
++          .eq("owner_id", user.id)
++          .order("created_at", { ascending: false });
++          
++        if (projectsData) {
++          setProposedProjects(projectsData);
++        }
+       }
+       setLoading(false);
+     }
+@@ -256,6 +265,56 @@
+         </CardContent>
+       </Card>
+ 
++      {/* Projets proposés par l'utilisateur vérifié */}
++      {kycStatus === 'verified' && (
++        <Card className="mt-8">
++          <CardHeader>
++            <CardTitle>Mes projets proposés</CardTitle>
++            <CardDescription>
++              Suivez l'état de validation et l'avancement de la collecte de vos projets.
++            </CardDescription>
++          </CardHeader>
++          <CardContent>
++            {proposedProjects.length === 0 ? (
++              <p className="text-muted-foreground text-sm">Vous n'avez pas encore proposé de projet.</p>
++            ) : (
++              <div className="space-y-6">
++                {proposedProjects.map((project) => (
++                  <div key={project.id} className="border rounded-lg p-4 flex flex-col md:flex-row md:items-center gap-4">
++                    <div className="w-16 h-16 bg-primary/10 rounded-md flex items-center justify-center shrink-0">
++                      <Building className="text-primary w-8 h-8" />
++                    </div>
++                    <div className="flex-1">
++                      <div className="flex items-center justify-between mb-1">
++                        <h3 className="font-semibold text-lg">{project.title}</h3>
++                        <div>
++                          {project.status === 'pending' && <span className="bg-orange-100 text-orange-700 text-xs px-2 py-1 rounded-full font-medium">En attente</span>}
++                          {project.status === 'approved' && <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-medium">Validé</span>}
++                          {project.status === 'rejected' && <span className="bg-red-100 text-red-700 text-xs px-2 py-1 rounded-full font-medium">Rejeté</span>}
++                        </div>
++                      </div>
++                      <p className="text-sm text-muted-foreground mb-3">{project.location}</p>
++                      
++                      {project.status === 'approved' ? (
++                        <div className="space-y-1">
++                          <div className="flex justify-between text-xs mb-1">
++                            <span>Récolte : {project.currentAmount?.toLocaleString("fr-FR")} €</span>
++                            <span className="text-muted-foreground">Objectif : {project.targetAmount?.toLocaleString("fr-FR")} €</span>
++                          </div>
++                          <Progress value={(project.currentAmount / project.targetAmount) * 100} className="h-2" />
++                        </div>
++                      ) : (
++                        <p className="text-sm italic text-muted-foreground">La récolte commencera une fois le projet validé.</p>
++                      )}
++                    </div>
++                  </div>
++                ))}
++              </div>
++            )}
++          </CardContent>
++        </Card>
++      )}
++
+       <Card className="mt-8">
+         <CardHeader>

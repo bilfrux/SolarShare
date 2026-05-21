@@ -9,7 +9,6 @@ import Signup from "./pages/Signup";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Profile from "./pages/Profile";
-import ProposeProject from "./pages/ProposeProject";
 
 export default function App() {
   return (
@@ -25,7 +24,6 @@ export default function App() {
           <Route path="/a-propos" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/profil" element={<Profile />} />
-          <Route path="/proposer-projet" element={<ProposeProject />} />
         </Routes>
       </Layout>
     </Router>

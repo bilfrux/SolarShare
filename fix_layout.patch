@@ -1,0 +1,36 @@
+--- src/components/Layout.tsx
++++ src/components/Layout.tsx
+@@ -70,6 +70,12 @@
+                 Contact
+               </Link>
+               
++              <Link 
++                to="/proposer-projet" 
++                className={`transition-colors ${isActive('/proposer-projet') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'}`}
++              >
++                Proposer un projet
++              </Link>
++
+               {session ? (
+                 <>
+                   <Link 
+@@ -124,6 +130,9 @@
+               <Link to="/contact" className={`block py-2 ${isActive('/contact') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'}`}>
+                 Contact
+               </Link>
++              <Link to="/proposer-projet" className={`block py-2 ${isActive('/proposer-projet') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'}`}>
++                Proposer un projet
++              </Link>
+               
+               <div className="space-y-2 pt-2 border-t">
+                 {session ? (
+@@ -176,7 +185,7 @@
+               <h4 className="mb-4">Projets</h4>
+               <ul className="space-y-2 text-sm opacity-80">
+                 <li><Link to="/projets" className="hover:opacity-100">Projets en cours</Link></li>
+-                <li><a href="#" className="hover:opacity-100">Projets financés</a></li>
+-                <li><a href="#" className="hover:opacity-100">Proposer un projet</a></li>
++                <li><Link to="/projets" className="hover:opacity-100">Projets financés</Link></li>
++                <li><Link to="/proposer-projet" className="hover:opacity-100">Proposer un projet</Link></li>
+               </ul>
+             </div>

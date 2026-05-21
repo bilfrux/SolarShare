@@ -1,0 +1,114 @@
+--- src/pages/Profile.tsx
++++ src/pages/Profile.tsx
+@@ -10,12 +10,14 @@
+ export default function Profile() {
+   const [loading, setLoading] = useState(true);
+   const [saving, setSaving] = useState(false);
++  const [kycLoading, setKycLoading] = useState(false);
+   const [user, setUser] = useState<any>(null);
+   const [firstName, setFirstName] = useState("");
+   const [lastName, setLastName] = useState("");
+   const [currentPassword, setCurrentPassword] = useState("");
+   const [newPassword, setNewPassword] = useState("");
+   const [confirmPassword, setConfirmPassword] = useState("");
++  const [kycStatus, setKycStatus] = useState("none");
+   const [message, setMessage] = useState({ text: "", type: "" });
+ 
+   useEffect(() => {
+@@ -25,9 +27,24 @@
+       if (user) {
+         setFirstName(user.user_metadata?.first_name || "");
+         setLastName(user.user_metadata?.last_name || "");
++        
++        // Fetch KYC profile
++        const { data } = await supabase
++          .from("profiles")
++          .select("kyc_status")
++          .eq("id", user.id)
++          .single();
++          
++        if (data) {
++          setKycStatus(data.kyc_status);
++        } else {
++          // Try to create profile if not exists (handling legacy users)
++          await supabase.from("profiles").insert({ id: user.id });
++        }
+       }
+       setLoading(false);
+     }
+     getProfile();
+   }, []);
+ 
+@@ -37,6 +54,23 @@
+     setSaving(true);
+@@ -100,6 +134,23 @@
+     setSaving(false);
+   };
+ 
++  const submitKyc = async () => {
++    setKycLoading(true);
++    setMessage({ text: "", type: "" });
++    
++    // Simulate document upload and instant verification for demo purposes
++    const { error } = await supabase.from("profiles").update({ 
++      kyc_status: "verified" 
++    }).eq("id", user.id);
++    
++    if (error) {
++      setMessage({ text: "Erreur lors de la vérification : " + error.message, type: "error" });
++    } else {
++      setKycStatus("verified");
++      setMessage({ text: "Super ! Votre compte est maintenant vérifié.", type: "success" });
++    }
++    setKycLoading(false);
++  };
++
+   if (loading) {
+     return (
+@@ -194,6 +245,46 @@
+         </CardContent>
+       </Card>
+ 
++      <Card className="mt-8 border-primary/20">
++        <CardHeader>
++          <CardTitle>Vérification d'identité (KYC)</CardTitle>
++          <CardDescription>
++            Devenez un compte vérifié pour pouvoir proposer vos propres projets solaires à la communauté.
++          </CardDescription>
++        </CardHeader>
++        <CardContent>
++          <div className="flex flex-col md:flex-row gap-6 items-center justify-between">
++            <div className="space-y-2">
++              <p>
++                <strong>Statut actuel : </strong> 
++                {kycStatus === 'none' && <span className="text-muted-foreground">Non vérifié</span>}
++                {kycStatus === 'pending' && <span className="text-orange-500">En cours de vérification</span>}
++                {kycStatus === 'verified' && <span className="text-green-600 font-semibold">Vérifié</span>}
++                {kycStatus === 'rejected' && <span className="text-red-600 font-semibold">Rejeté</span>}
++              </p>
++              {kycStatus !== 'verified' && (
++                <p className="text-sm text-muted-foreground">
++                  (Simulation) : Cliquez sur le bouton pour vérifier instantanément votre compte et obtenir les droits de création.
++                </p>
++              )}
++            </div>
++            
++            {kycStatus !== 'verified' && (
++              <Button onClick={submitKyc} disabled={kycLoading} className="bg-primary hover:bg-primary/90">
++                {kycLoading ? (
++                  <>
++                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
++                    Validation...
++                  </>
++                ) : (
++                  "Vérifier mon compte"
++                )}
++              </Button>
++            )}
++          </div>
++        </CardContent>
++      </Card>
++
+       <Card className="mt-8">
+         <CardHeader>
+           <CardTitle>Sécurité</CardTitle>

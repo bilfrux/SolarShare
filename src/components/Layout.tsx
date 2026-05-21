@@ -1,8 +1,9 @@
-import { ReactNode, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { ReactNode, useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogOut, User } from "lucide-react";
 import logo from "figma:asset/1a83fc5339afc681ed6ad58a4ed81e70b2bcd957.png";
+import { supabase } from "../lib/supabase";
 
 interface LayoutProps {
   children: ReactNode;
@@ -10,7 +11,28 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [session, setSession] = useState<any>(null);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/');
+  };
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -39,22 +61,22 @@ export default function Layout({ children }: LayoutProps) {
                 Projets
               </Link>
               <Link 
-                to="/tableau-de-bord" 
-                className={`transition-colors ${isActive('/tableau-de-bord') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'}`}
-              >
-                Mon Dashboard
-              </Link>
-              <Link 
                 to="/comment-ca-marche" 
                 className={`transition-colors ${isActive('/comment-ca-marche') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'}`}
               >
                 Comment ça marche
               </Link>
               <Link 
+                to="/tableau-de-bord" 
+                className={`transition-colors ${isActive('/tableau-de-bord') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'}`}
+              >
+                Dashboard
+              </Link>
+              <Link 
                 to="/a-propos" 
                 className={`transition-colors ${isActive('/a-propos') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'}`}
               >
-                À propos
+                À Propos
               </Link>
               <Link 
                 to="/contact" 
@@ -62,14 +84,40 @@ export default function Layout({ children }: LayoutProps) {
               >
                 Contact
               </Link>
-              <Link to="/connexion">
-                <Button variant="outline">Connexion</Button>
+
+              <Link 
+                to="/proposer-projet" 
+                className={`transition-colors ${isActive('/proposer-projet') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'}`}
+              >
+                Proposer un projet
               </Link>
-              <Link to="/inscription">
-                <Button className="bg-primary hover:bg-primary/90">
-                  Commencer
-                </Button>
-              </Link>
+              
+              {session ? (
+                <>
+                  <Link 
+                    to="/profil" 
+                    className={`transition-colors flex items-center gap-2 ${isActive('/profil') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'}`}
+                  >
+                    <User className="w-4 h-4" />
+                    Mon Profil
+                  </Link>
+                  <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2">
+                    <LogOut className="w-4 h-4" />
+                    Déconnexion
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link to="/connexion">
+                    <Button variant="outline">Connexion</Button>
+                  </Link>
+                  <Link to="/inscription">
+                    <Button className="bg-primary hover:bg-primary/90">
+                      Commencer
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
 
             {/* Mobile menu button */}
@@ -96,27 +144,48 @@ export default function Layout({ children }: LayoutProps) {
               <Link to="/projets" className={`block py-2 ${isActive('/projets') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'}`}>
                 Projets
               </Link>
-              <Link to="/tableau-de-bord" className={`block py-2 ${isActive('/tableau-de-bord') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'}`}>
-                Mon Dashboard
-              </Link>
               <Link to="/comment-ca-marche" className={`block py-2 ${isActive('/comment-ca-marche') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'}`}>
                 Comment ça marche
               </Link>
+              <Link to="/tableau-de-bord" className={`block py-2 ${isActive('/tableau-de-bord') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'}`}>
+                Dashboard
+              </Link>
               <Link to="/a-propos" className={`block py-2 ${isActive('/a-propos') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'}`}>
-                À propos
+                À Propos
               </Link>
               <Link to="/contact" className={`block py-2 ${isActive('/contact') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'}`}>
                 Contact
               </Link>
-              <div className="space-y-2 pt-2">
-                <Link to="/connexion" className="block">
-                  <Button variant="outline" className="w-full">Connexion</Button>
-                </Link>
-                <Link to="/inscription" className="block">
-                  <Button className="w-full bg-primary hover:bg-primary/90">
-                    Commencer
-                  </Button>
-                </Link>
+
+              <Link to="/proposer-projet" className={`block py-2 ${isActive('/proposer-projet') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'}`}>
+                Proposer un projet
+              </Link>
+              
+              <div className="space-y-2 pt-2 border-t">
+                {session ? (
+                  <>
+                    <Link to="/profil" className="block">
+                      <Button variant="ghost" className="w-full flex justify-start gap-2">
+                        <User className="w-4 h-4" />
+                        Mon Profil
+                      </Button>
+                    </Link>
+                    <Button variant="outline" onClick={handleLogout} className="w-full">
+                      Déconnexion
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/connexion" className="block">
+                      <Button variant="outline" className="w-full">Connexion</Button>
+                    </Link>
+                    <Link to="/inscription" className="block">
+                      <Button className="w-full bg-primary hover:bg-primary/90">
+                        Commencer
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -143,8 +212,8 @@ export default function Layout({ children }: LayoutProps) {
               <h4 className="mb-4">Projets</h4>
               <ul className="space-y-2 text-sm opacity-80">
                 <li><Link to="/projets" className="hover:opacity-100">Projets en cours</Link></li>
-                <li><a href="#" className="hover:opacity-100">Projets financés</a></li>
-                <li><a href="#" className="hover:opacity-100">Proposer un projet</a></li>
+                <li><Link to="/projets" className="hover:opacity-100">Projets financés</Link></li>
+                <li><Link to="/proposer-projet" className="hover:opacity-100">Proposer un projet</Link></li>
               </ul>
             </div>
 

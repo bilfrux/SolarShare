@@ -1,0 +1,85 @@
+--- src/pages/Dashboard.tsx
++++ src/pages/Dashboard.tsx
+@@ -2,7 +2,7 @@
+ import { Link } from "react-router-dom";
+ import { ImpactDashboard } from "../components/ImpactDashboard";
+ import { ProjectCard } from "../components/ProjectCard";
+-import { TrendingUp, Leaf, DollarSign, Target, AlertCircle, Loader2 } from "lucide-react";
++import { TrendingUp, Leaf, DollarSign, Target, AlertCircle, Loader2, PlusCircle } from "lucide-react";
+ import { supabase } from "../lib/supabase";
+ import { Button } from "../components/ui/button";
+ 
+@@ -17,6 +17,7 @@
+   investors: number;
+   returnRate: string;
+   category: string;
++  status?: string;
+ }
+ 
+ interface InvestmentRow {
+@@ -38,6 +39,8 @@
+   const [session, setSession] = useState<any>(null);
+   const [loading, setLoading] = useState(true);
+   const [myProjects, setMyProjects] = useState<InvestedProject[]>([]);
++  const [myProposedProjects, setMyProposedProjects] = useState<Project[]>([]);
++
+   const [stats, setStats] = useState<DashboardStats>({
+     projectCount: 0,
+     totalInvestment: 0,
+@@ -73,6 +76,7 @@
+       if (!session?.user?.id) {
+         setMyProjects(mockedProjects as InvestedProject[]);
++        setMyProposedProjects([]);
+         setStats(mockStats);
+         setLoading(false);
+         return;
+@@ -84,6 +88,14 @@
+         .eq("user_id", session.user.id)
+         .order("created_at", { ascending: false });
+ 
++      // Fetch projects proposed by the user
++      const { data: proposedData } = await supabase
++        .from("projects")
++        .select("*")
++        .eq("owner_id", session.user.id)
++        .order("created_at", { ascending: false });
++        
++      setMyProposedProjects((proposedData || []) as Project[]);
++
+       if (!isMounted) {
+         return;
+       }
+@@ -291,6 +303,42 @@
+         </div>
+ 
++        {/* My Proposed Projects (if any) */}
++        {session && myProposedProjects.length > 0 && (
++          <div className="mb-12">
++            <h2 className="text-3xl text-foreground mb-6 flex items-center gap-3">
++              Projets que j'ai proposés
++            </h2>
++            <div className="grid md:grid-cols-2 gap-8">
++              {myProposedProjects.map((project) => (
++                <div key={project.id} className="relative">
++                  <ProjectCard {...project} />
++                  <div className="mt-4 p-4 bg-muted rounded-lg shadow-sm border border-primary/20">
++                    <div className="flex justify-between items-center">
++                      <div>
++                        <p className="text-sm text-muted-foreground">Statut du projet</p>
++                        <p className="text-lg font-medium">
++                          {project.status === 'pending' && <span className="text-orange-500">En attente de validation</span>}
++                          {project.status === 'approved' && <span className="text-green-600">Validé et publié</span>}
++                          {project.status === 'rejected' && <span className="text-red-500">Rejeté</span>}
++                        </p>
++                      </div>
++                    </div>
++                  </div>
++                </div>
++              ))}
++            </div>
++          </div>
++        )}
++
+         {/* My Projects */}
+         <div>
+           <h2 className="text-3xl text-foreground mb-6">
