@@ -1,4 +1,4 @@
-import { Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone, MapPin, CheckCircle2 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
@@ -11,11 +11,18 @@ export default function Contact() {
     subject: "",
     message: ""
   });
+  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Contact form submitted:", formData);
-    // Handle form submission
+    setLoading(true);
+    // Simulation d'envoi du message (délai 800ms pour réalisme)
+    setTimeout(() => {
+      setSubmitted(true);
+      setLoading(false);
+      setFormData({ name: "", email: "", subject: "", message: "" });
+    }, 800);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -112,67 +119,80 @@ export default function Contact() {
                 Envoyez-nous un message
               </h2>
               
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <Label htmlFor="name">Nom complet</Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={handleChange}
-                    className="mt-1"
-                    placeholder="Jean Dupont"
-                  />
+              {submitted ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
+                  <CheckCircle2 className="w-16 h-16 text-primary" />
+                  <h3 className="text-2xl text-foreground font-medium">Message envoyé !</h3>
+                  <p className="text-muted-foreground max-w-sm">
+                    Merci pour votre message. Notre équipe vous répondra dans les plus brefs délais (généralement sous 24h ouvrées).
+                  </p>
+                  <Button variant="outline" onClick={() => setSubmitted(false)} className="mt-4">
+                    Envoyer un autre message
+                  </Button>
                 </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div>
+                    <Label htmlFor="name">Nom complet</Label>
+                    <Input
+                      id="name"
+                      name="name"
+                      type="text"
+                      required
+                      value={formData.name}
+                      onChange={handleChange}
+                      className="mt-1"
+                      placeholder="Jean Dupont"
+                    />
+                  </div>
 
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    required
-                    value={formData.email}
-                    onChange={handleChange}
-                    className="mt-1"
-                    placeholder="votre@email.com"
-                  />
-                </div>
+                  <div>
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      required
+                      value={formData.email}
+                      onChange={handleChange}
+                      className="mt-1"
+                      placeholder="votre@email.com"
+                    />
+                  </div>
 
-                <div>
-                  <Label htmlFor="subject">Sujet</Label>
-                  <Input
-                    id="subject"
-                    name="subject"
-                    type="text"
-                    required
-                    value={formData.subject}
-                    onChange={handleChange}
-                    className="mt-1"
-                    placeholder="Votre sujet"
-                  />
-                </div>
+                  <div>
+                    <Label htmlFor="subject">Sujet</Label>
+                    <Input
+                      id="subject"
+                      name="subject"
+                      type="text"
+                      required
+                      value={formData.subject}
+                      onChange={handleChange}
+                      className="mt-1"
+                      placeholder="Votre sujet"
+                    />
+                  </div>
 
-                <div>
-                  <Label htmlFor="message">Message</Label>
-                  <textarea
-                    id="message"
-                    name="message"
-                    required
-                    value={formData.message}
-                    onChange={handleChange}
-                    rows={6}
-                    className="mt-1 w-full px-3 py-2 border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                    placeholder="Votre message..."
-                  />
-                </div>
+                  <div>
+                    <Label htmlFor="message">Message</Label>
+                    <textarea
+                      id="message"
+                      name="message"
+                      required
+                      value={formData.message}
+                      onChange={handleChange}
+                      rows={6}
+                      className="mt-1 w-full px-3 py-2 border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                      placeholder="Votre message..."
+                    />
+                  </div>
 
-                <Button type="submit" size="lg" className="w-full">
-                  Envoyer le message
-                </Button>
-              </form>
+                  <Button type="submit" size="lg" className="w-full" disabled={loading}>
+                    {loading ? "Envoi en cours..." : "Envoyer le message"}
+                  </Button>
+                </form>
+              )}
             </div>
           </div>
         </div>

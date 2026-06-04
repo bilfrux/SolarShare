@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "../components/ui/button";
-import { Sun, Users, Target, Award } from "lucide-react";
+import { Sun, Users, Target, Award, TrendingUp } from "lucide-react";
 
 export default function About() {
   return (
@@ -106,10 +106,44 @@ export default function About() {
         {/* Team */}
         <div className="mb-12">
           <h2 className="text-3xl text-foreground mb-8 text-center">Notre équipe</h2>
-          <p className="text-lg text-muted-foreground text-center max-w-3xl mx-auto mb-8">
+          <p className="text-lg text-muted-foreground text-center max-w-3xl mx-auto mb-10">
             SolarShare est portée par une équipe passionnée de professionnels de l'énergie, de la finance 
             et du digital, tous engagés pour accélérer la transition énergétique.
           </p>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="bg-white rounded-xl p-6 shadow-sm text-center">
+              <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <Users className="w-10 h-10 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground">Marie Dubois</h3>
+              <p className="text-sm text-primary font-medium mb-2">Co-fondatrice & CEO</p>
+              <p className="text-sm text-muted-foreground">Ex-directrice énergie chez EDF, 15 ans d'expérience dans les énergies renouvelables.</p>
+            </div>
+            <div className="bg-white rounded-xl p-6 shadow-sm text-center">
+              <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <TrendingUp className="w-10 h-10 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground">Thomas Bernard</h3>
+              <p className="text-sm text-primary font-medium mb-2">Co-fondateur & CTO</p>
+              <p className="text-sm text-muted-foreground">Ingénieur en systèmes embarqués, spécialiste IoT et monitoring énergétique.</p>
+            </div>
+            <div className="bg-white rounded-xl p-6 shadow-sm text-center">
+              <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <Award className="w-10 h-10 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground">Sophie Martin</h3>
+              <p className="text-sm text-primary font-medium mb-2">Directrice Financière</p>
+              <p className="text-sm text-muted-foreground">Ancienne analyste chez BNP Paribas, experte en financement de projets d'infrastructure.</p>
+            </div>
+            <div className="bg-white rounded-xl p-6 shadow-sm text-center">
+              <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <Target className="w-10 h-10 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground">Lucas Petit</h3>
+              <p className="text-sm text-primary font-medium mb-2">Responsable Projets</p>
+              <p className="text-sm text-muted-foreground">Ingénieur photovoltaïque, gère la sélection et le suivi de l'ensemble des projets partenaires.</p>
+            </div>
+          </div>
         </div>
 
         {/* CTA */}

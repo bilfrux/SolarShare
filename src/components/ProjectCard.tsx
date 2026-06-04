@@ -5,6 +5,7 @@ import { Progress } from "./ui/progress";
 import { MapPin, Users, TrendingUp } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { InvestmentDialog } from "./InvestmentDialog";
+import { ProjectDetailDialog } from "./ProjectDetailDialog";
 
 interface ProjectCardProps {
   id: string;
@@ -18,6 +19,8 @@ interface ProjectCardProps {
   returnRate: string;
   category: string;
   onInvested?: (amount: number) => void;
+  /** Si true, cache les boutons d'action (pour les projets proposés dans le Dashboard) */
+  hideActions?: boolean;
 }
 
 export function ProjectCard({
@@ -32,8 +35,9 @@ export function ProjectCard({
   returnRate,
   category,
   onInvested,
+  hideActions = false,
 }: ProjectCardProps) {
-  const progress = (currentAmount / targetAmount) * 100;
+  const progress = Math.min((currentAmount / targetAmount) * 100, 100);
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
@@ -84,17 +88,32 @@ export function ProjectCard({
           </div>
         </div>
       </CardContent>
-      <CardFooter className="flex gap-2">
-        <Button variant="outline" className="flex-1">En savoir plus</Button>
-        <InvestmentDialog
-          projectId={id}
-          projectTitle={title}
-          projectTargetAmount={targetAmount}
-          projectCurrentAmount={currentAmount}
-          projectInvestors={investors}
-          onInvested={onInvested}
-        />
-      </CardFooter>
+
+      {!hideActions && (
+        <CardFooter className="flex gap-2">
+          <ProjectDetailDialog
+            id={id}
+            title={title}
+            location={location}
+            description={description}
+            imageUrl={imageUrl}
+            targetAmount={targetAmount}
+            currentAmount={currentAmount}
+            investors={investors}
+            returnRate={returnRate}
+            category={category}
+            onInvested={onInvested}
+          />
+          <InvestmentDialog
+            projectId={id}
+            projectTitle={title}
+            projectTargetAmount={targetAmount}
+            projectCurrentAmount={currentAmount}
+            projectInvestors={investors}
+            onInvested={onInvested}
+          />
+        </CardFooter>
+      )}
     </Card>
   );
 }

@@ -4,13 +4,15 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "../components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Loader2, PlusCircle, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function ProposeProject() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
   const [kycStatus, setKycStatus] = useState<string>("none");
   const [session, setSession] = useState<any>(null);
   const navigate = useNavigate();
@@ -54,8 +56,21 @@ export default function ProposeProject() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
+    setSubmitError(null);
+
+    // Vérification de la session
+    const { data: { session: currentSession } } = await supabase.auth.getSession();
+    const userId = currentSession?.user?.id || session?.user?.id;
     
-    const { error } = await supabase.from("projects").insert({
+    console.log("[ProposeProject] session user id:", userId);
+    
+    if (!userId) {
+      setSubmitError("Erreur : vous n'êtes pas connecté.");
+      setSubmitting(false);
+      return;
+    }
+
+    const insertPayload = {
       title: formData.title,
       location: formData.location,
       description: formData.description,
@@ -66,16 +81,27 @@ export default function ProposeProject() {
       returnRate: String(formData.returnRate),
       category: formData.category,
       status: "pending",
-      owner_id: session.user.id
-    });
+      owner_id: userId
+    };
+    
+    console.log("[ProposeProject] Insert payload:", insertPayload);
+    
+    const { data: insertedData, error } = await supabase
+      .from("projects")
+      .insert(insertPayload)
+      .select();
+
+    console.log("[ProposeProject] Insert result - data:", insertedData);
+    console.log("[ProposeProject] Insert result - error:", error);
 
     setSubmitting(false);
 
     if (error) {
-      alert("Erreur lors de la soumission : " + error.message);
+      setSubmitError("Erreur lors de la soumission : " + error.message);
     } else {
-      alert("Projet soumis avec succès. En attente de validation !");
-      navigate("/dashboard");
+      setSubmitted(true);
+      // Redirection après 3 secondes
+      setTimeout(() => navigate("/tableau-de-bord"), 3000);
     }
   };
 
@@ -125,6 +151,22 @@ export default function ProposeProject() {
           </div>
         </div>
 
+        {submitted ? (
+          <Card className="border-green-200">
+            <CardContent className="pt-8">
+              <div className="flex flex-col items-center text-center space-y-4 py-8">
+                <CheckCircle2 className="w-16 h-16 text-green-500" />
+                <h2 className="text-2xl font-bold text-foreground">Projet soumis !</h2>
+                <p className="text-muted-foreground max-w-sm">
+                  Votre projet a été envoyé pour validation. Notre équipe l'examinera et vous notifiera de sa décision. Vous serez redirigé vers votre tableau de bord dans quelques secondes.
+                </p>
+                <Button onClick={() => navigate("/tableau-de-bord")} className="mt-4">
+                  Aller au tableau de bord
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
         <Card>
           <CardHeader>
             <CardTitle>Caractéristiques du projet</CardTitle>
@@ -133,6 +175,12 @@ export default function ProposeProject() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {submitError && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                <p className="text-red-700 text-sm">{submitError}</p>
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="title">Titre du projet</Label>
@@ -188,6 +236,7 @@ export default function ProposeProject() {
             </form>
           </CardContent>
         </Card>
+        )}
       </div>
     </div>
   );

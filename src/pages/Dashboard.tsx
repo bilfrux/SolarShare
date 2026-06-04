@@ -112,11 +112,14 @@ export default function Dashboard() {
         return;
       }
 
-      const { data: proposedData } = await supabase
+      const { data: proposedData, error: proposedError } = await supabase
         .from("projects")
         .select("*")
-        .eq("owner_id", session.user.id)
-        .order("created_at", { ascending: false });
+        .eq("owner_id", session.user.id);
+
+      console.log("[Dashboard] session.user.id:", session.user.id);
+      console.log("[Dashboard] proposedData:", proposedData);
+      console.log("[Dashboard] proposedError:", proposedError);
         
       if (proposedData) {
         setMyProposedProjects(proposedData);
@@ -125,8 +128,7 @@ export default function Dashboard() {
       const { data, error } = await supabase
         .from("investments")
         .select("amount, projects(*)")
-        .eq("user_id", session.user.id)
-        .order("created_at", { ascending: false });
+        .eq("user_id", session.user.id);
 
       if (!isMounted) {
         return;
@@ -215,14 +217,12 @@ export default function Dashboard() {
         .from("projects")
         .select("*")
         .eq("owner_id", session.user.id)
-        .order("created_at", { ascending: false })
         .then(({ data }) => setMyProposedProjects(data || []));
 
       supabase
         .from("investments")
         .select("amount, projects(*)")
         .eq("user_id", session.user.id)
-        .order("created_at", { ascending: false })
         .then(({ data, error }) => {
           if (error) {
             console.error("Erreur lors de la récupération des investissements:", error);
@@ -352,7 +352,7 @@ export default function Dashboard() {
               <h3 className="text-muted-foreground">Revenus générés</h3>
             </div>
             <p className="text-3xl text-green-600 mb-2">{stats.generatedRevenue.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €</p>
-            <p className="text-sm text-muted-foreground">Rendement moy.: {stats.averageReturn}%</p>
+            <p className="text-sm text-muted-foreground">Rendement moy.: {stats.averageReturn.toFixed(2)}%</p>
           </div>
           
           <div className="bg-white rounded-xl p-6 shadow-sm">
@@ -396,31 +396,81 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* My Proposed Projects */}
-        {session && myProposedProjects.length > 0 && (
+        {/* My Proposed Projects - visible uniquement si connecté */}
+        {session && (
           <div className="mb-12">
             <h2 className="text-3xl text-foreground mb-6">
               Projets que j'ai proposés
             </h2>
-            <div className="grid md:grid-cols-2 gap-8">
-              {myProposedProjects.map((project) => (
-                <div key={project.id} className="relative">
-                  <ProjectCard {...project} />
-                  <div className="mt-4 p-4 bg-muted rounded-lg shadow-sm border border-primary/20">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Statut du projet</p>
-                        <p className="text-lg font-medium">
-                          {project.status === 'pending' && <span className="text-orange-500">En attente de validation</span>}
-                          {project.status === 'approved' && <span className="text-green-600">Validé et publié</span>}
-                          {project.status === 'rejected' && <span className="text-red-500">Rejeté</span>}
-                        </p>
+            {myProposedProjects.length === 0 ? (
+              <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-dashed border-primary/30">
+                <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <Target className="w-7 h-7 text-primary opacity-60" />
+                </div>
+                <h3 className="text-lg font-medium text-foreground mb-2">Aucun projet proposé</h3>
+                <p className="text-muted-foreground mb-6 max-w-sm mx-auto text-sm">
+                  Vous pouvez soumettre votre propre projet solaire pour validation. 
+                  Il apparaîtra ici une fois soumis.
+                </p>
+                <Link to="/proposer-projet">
+                  <Button variant="outline">Proposer un projet</Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 gap-8">
+                {myProposedProjects.map((project) => (
+                  <div key={project.id}>
+                    <ProjectCard {...project} hideActions={true} />
+                    <div className="mt-3 p-4 bg-white rounded-lg shadow-sm border-l-4 border-l-primary/60">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Statut du projet</p>
+                          <div className="flex items-center gap-2">
+                            {project.status === 'pending' && (
+                              <span className="inline-flex items-center gap-1.5 bg-orange-100 text-orange-700 text-sm px-3 py-1 rounded-full font-medium">
+                                <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
+                                En attente de validation
+                              </span>
+                            )}
+                            {project.status === 'approved' && (
+                              <span className="inline-flex items-center gap-1.5 bg-green-100 text-green-700 text-sm px-3 py-1 rounded-full font-medium">
+                                <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                                Validé et publié
+                              </span>
+                            )}
+                            {project.status === 'rejected' && (
+                              <span className="inline-flex items-center gap-1.5 bg-red-100 text-red-700 text-sm px-3 py-1 rounded-full font-medium">
+                                <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                                Rejeté
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        {project.status === 'pending' && (
+                          <p className="text-xs text-muted-foreground text-right max-w-32">
+                            Examiné sous 48-72h ouvrées
+                          </p>
+                        )}
                       </div>
+                      {project.status === 'approved' && project.targetAmount > 0 && (
+                        <div className="mt-3">
+                          <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                            <span>{(project.currentAmount || 0).toLocaleString("fr-FR")} € collectés</span>
+                            <span>Objectif : {project.targetAmount.toLocaleString("fr-FR")} €</span>
+                          </div>
+                          <div className="h-2 bg-muted rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-primary rounded-full transition-all"
+                              style={{ width: `${Math.min(((project.currentAmount || 0) / project.targetAmount) * 100, 100)}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

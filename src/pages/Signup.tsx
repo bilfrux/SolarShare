@@ -46,8 +46,11 @@ export default function Signup() {
 
       if (error) throw error;
       
-      setSuccessMsg("Inscription réussie ! Vous pouvez maintenant vous connecter (vérifiez vos emails si nécessaire).");
-      // Optional: navigate.push('/connexion') after a delay
+      setSuccessMsg("Inscription réussie ! Vous allez être redirigé vers la page de connexion...");
+      // Redirection automatique vers /connexion après 2.5 secondes
+      setTimeout(() => {
+        navigate("/connexion");
+      }, 2500);
     } catch (err: any) {
       setErrorState(err.message || "Une erreur est survenue.");
     } finally {

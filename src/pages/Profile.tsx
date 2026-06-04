@@ -44,8 +44,7 @@ export default function Profile() {
         const { data: projectsData } = await supabase
           .from("projects")
           .select("*")
-          .eq("owner_id", user.id)
-          .order("created_at", { ascending: false });
+          .eq("owner_id", user.id);
 
         if (projectsData) {
           setProposedProjects(projectsData);
